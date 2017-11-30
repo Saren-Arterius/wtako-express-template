@@ -1,0 +1,33 @@
+version: "2"
+services:
+  node:
+    build: ./app
+    volumes:
+      - ./app:/src/app
+      - ./logs/npm:/home/node/.npm/_logs
+    links:
+      - redis:redis
+    depends_on:
+      - redis
+    ports:
+      - 8443:3000
+    environment:
+      NODE_CONFIG_DIR: /src/app/config
+  redis:
+    image: redis:4-alpine
+    restart: always
+    volumes:
+      - ./docker-configs/redis.conf:/etc/redis.conf
+      - ./docker-data/redis:/var/lib/redis
+    command: redis-server /etc/redis.conf
+  phpredmin:
+    image: sasanrose/phpredmin
+    restart: always
+    links:
+      - redis:redis
+    ports:
+      - 127.0.0.1:8080:80
+    depends_on:
+      - redis
+    environment:
+      PHPREDMIN_DATABASE_REDIS_0_HOST: redis
